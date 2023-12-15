@@ -570,8 +570,8 @@ Seguindo esses passos, você terá um ambiente de desenvolvimento local configur
 
 ## Código e Documentação
 
-[Código do Hardware](https://github.com/theHprogrammer-UFSCWORKS/UBIQUOS_STRESS_DETECTOR/blob/main/hardware/index/index.ino)
-[Relatório Final](https://github.com/theHprogrammer-UFSCWORKS/UBIQUOS_STRESS_DETECTOR/blob/main/reports/RF.pdf)
+- [Código do Hardware](https://github.com/theHprogrammer-UFSCWORKS/UBIQUOS_STRESS_DETECTOR/blob/main/hardware/index/index.ino)
+- [Relatório Final](https://github.com/theHprogrammer-UFSCWORKS/UBIQUOS_STRESS_DETECTOR/blob/main/reports/RF.pdf)
 
 <br>
 
