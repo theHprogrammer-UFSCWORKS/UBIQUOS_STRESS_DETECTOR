@@ -1,0 +1,182 @@
+{% extends "layouts/base.html" %} {% block head %}
+<meta name="csrf-token" content="{{ csrf_token }}" />
+{% endblock head %} {% block title %} Stress Detector Dashboard {% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<style>
+	.card-body {
+		display: flex; /* Ativa o flexbox */
+		justify-content: center; /* Centraliza horizontalmente */
+		align-items: center; /* Centraliza verticalmente */
+		height: 100%; /* Define a altura para 100% do container pai */
+	}
+	.row {
+		width: 100%; /* A row deve ocupar 100% da largura do card-body */
+	}
+	#macInput,
+	.btn-primary {
+		border-radius: 0.25rem; /* Arredondamento da borda */
+	}
+</style>
+{% endblock stylesheets %} {% block content %}
+
+<div class="content">
+	<div class="row justify-content-center">
+		<!-- Esta classe centraliza a 'row' horizontalmente -->
+		<div class="col-12">
+			<div class="card">
+				<div
+					class="card-body d-flex justify-content-center align-items-center"
+				>
+					<!-- Classes para centralizar verticalmente e horizontalmente -->
+					<div class="row">
+						<!-- Coluna para o campo de entrada -->
+						<div class="col-sm-3">
+							<input
+								type="text"
+								id="macInput"
+								class="form-control"
+								placeholder="Insira o MAC do dispositivo"
+								aria-label="MAC do dispositivo"
+							/>
+						</div>
+						<!-- Coluna para o botão -->
+						<div class="col-sm-4">
+							<button
+								class="btn btn-primary"
+								onclick="startAnalysis()"
+							>
+								Nova Análise
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<!-- GSR Data Chart -->
+		<div class="col-lg-4">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-category">GSR</h5>
+					<h3 class="card-title">
+						<i class="tim-icons icon-sound-wave text-primary"></i>
+						<span id="gsrValue">--</span> ohms (Ω)
+					</h3>
+				</div>
+			</div>
+		</div>
+
+		<!-- Heart Rate Data Chart -->
+		<div class="col-lg-4">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-category">Frequência Cardiaca</h5>
+					<h3 class="card-title">
+						<i class="tim-icons icon-heart-2 text-danger"></i>
+						<span id="heartRateValue">--</span> bpm
+					</h3>
+				</div>
+			</div>
+		</div>
+
+		<!-- Temperature Data Chart -->
+		<div class="col-lg-4">
+			<div class="card">
+				<div class="card-header">
+					<h5 class="card-category">Temperatura</h5>
+					<h3 class="card-title">
+						<i class="fa fa-thermometer-half text-info"></i>
+						<span id="temperatureValue">--</span> °C
+					</h3>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<!-- Adicione o jQuery na sua página, se ainda não estiver adicionado -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+	function getCookie(name) {
+		let cookieValue = null;
+		if (document.cookie && document.cookie !== "") {
+			const cookies = document.cookie.split(";");
+			for (let i = 0; i < cookies.length; i++) {
+				const cookie = cookies[i].trim();
+				if (cookie.substring(0, name.length + 1) === name + "=") {
+					cookieValue = decodeURIComponent(
+						cookie.substring(name.length + 1)
+					);
+					break;
+				}
+			}
+		}
+		return cookieValue;
+	}
+
+	const csrftoken = getCookie("csrftoken");
+	var intervaloAtualizacao; // Variável para armazenar o ID do intervalo
+	
+    function startAnalysis() {
+        var macAddress = $("#macInput").val();
+        if (macAddress) {
+            $.ajax({
+                url: "iniciar-analise/",
+                type: "POST",
+                headers: {
+                    "X-CSRFToken": csrftoken,
+                },
+                data: {
+                    mac_address: macAddress,
+                },
+                success: function (response) {
+                    console.log("Análise iniciada", response);
+                    atualizarDadosSensores(); // Inicia a atualização dos dados
+					intervaloAtualizacao = setInterval(atualizarDadosSensores, 5000);                
+				},
+                error: function (error) {
+                    console.error("Erro ao iniciar análise:", error);
+                },
+            });
+        } else {
+            alert("Por favor, insira o endereço MAC.");
+        }
+    }
+
+	// Função para atualizar os dados na tela
+function atualizarDadosSensores() {
+    $.ajax({
+        url: "obter-dados-sensores/",
+        type: "GET",
+        success: function (response) {
+            $("#gsrValue").text(response.gsr);
+            $("#heartRateValue").text(response.freq_cardiaca);
+            $("#temperatureValue").text(response.temperatura);
+			if (response.coleta_ativa == 'False') {
+                clearInterval(intervaloAtualizacao);
+                console.log("Coleta de dados finalizada.");
+                return;
+            }
+        },
+        error: function (error) {
+            console.error("Erro ao obter dados dos sensores:", error);
+        },
+    });
+}
+
+	{% comment %} $(document).ready(function () {
+		atualizarDadosSensores(); // Chama a função imediatamente
+		setInterval(atualizarDadosSensores, 5000); // E depois a cada 5 segundos
+	}); {% endcomment %}
+</script>
+
+{% endblock javascripts %}
